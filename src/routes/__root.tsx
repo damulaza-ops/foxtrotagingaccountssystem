@@ -88,10 +88,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Foxtrot Aging Accounts System" },
       {
         property: "og:description",
-        content: "Accounts receivable, aging buckets and collections follow-up for Foxtrot.",
+        content: "Track customer invoices, payments, outstanding balances and overdue accounts for Foxtrot.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Foxtrot Aging Accounts System" },
+      { name: "twitter:description", content: "Track customer invoices, payments, outstanding balances and overdue accounts for Foxtrot." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/58ffee4e-7f31-4cd6-a853-46684ede69b3/id-preview-d1bc22e6--a585ed6e-6539-4fe3-b4ad-23abf6a4e794.lovable.app-1783760283998.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/58ffee4e-7f31-4cd6-a853-46684ede69b3/id-preview-d1bc22e6--a585ed6e-6539-4fe3-b4ad-23abf6a4e794.lovable.app-1783760283998.png" },
     ],
     links: [
       {
