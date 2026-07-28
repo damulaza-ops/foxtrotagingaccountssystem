@@ -22,9 +22,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
+      <div className="flex min-h-screen w-full overflow-x-hidden">
         <AppSidebar />
-        <div className="flex flex-1 flex-col min-w-0">
+        <div className="flex min-w-0 flex-1 flex-col">
           <header className="no-print sticky top-0 z-20 flex h-14 items-center gap-3 border-b bg-card px-4">
             <SidebarTrigger />
             <div className="ml-auto flex items-center gap-3">
@@ -39,7 +39,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Button>
             </div>
           </header>
-          <main className="flex-1 p-4 md:p-6">{children}</main>
+          <main className="w-full min-w-0 flex-1 p-4 md:p-6">
+            <div className="mx-auto w-full min-w-0 max-w-[1600px]">{children}</div>
+          </main>
         </div>
       </div>
     </SidebarProvider>
