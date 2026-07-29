@@ -149,7 +149,7 @@ function CustomersPage() {
               <EmptyState
                 title="No customers found"
                 description="Add your first customer or import them from Excel."
-                action={isManager ? <Button onClick={() => setDialogOpen(true)}>Add customer</Button> : undefined}
+                action={isManager ? <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>New customer</Button> : undefined}
               />
             </div>
           ) : (
