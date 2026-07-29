@@ -51,6 +51,7 @@ export function CustomerDialog({
               location: customer.location ?? "",
               credit_days: customer.credit_days,
               credit_limit: Number(customer.credit_limit),
+              opening_balance: Number(customer.opening_balance ?? 0),
               status: customer.status,
               notes: customer.notes ?? "",
             }
