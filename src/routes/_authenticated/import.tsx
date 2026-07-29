@@ -78,6 +78,10 @@ function toNumber(v: unknown): number | null {
   return isFinite(n) ? n : null;
 }
 
+function norm(v: string) {
+  return v.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
 function autoGuess(header: string): FieldKey | "" {
   const h = header.toLowerCase();
   if (h.includes("code")) return "customer_code";
@@ -168,6 +172,21 @@ function ImportPage() {
     [invoices],
   );
 
+  const customerIndex = useMemo(() => {
+    const byCode = new Map<string, string>();
+    const byName = new Map<string, string>();
+    for (const c of customers ?? []) {
+      byCode.set(norm(c.customer_code), c.id);
+      byName.set(norm(c.business_name), c.id);
+    }
+    return { byCode, byName };
+  }, [customers]);
+
+  const matchCustomer = (code: string, name: string) =>
+    (code ? customerIndex.byCode.get(norm(code)) : undefined) ??
+    (name ? customerIndex.byName.get(norm(name)) : undefined) ??
+    null;
+
   const preview = useMemo(() => {
     const seen = new Set<string>();
     return raw.map((r, idx) => {
@@ -181,6 +200,7 @@ function ImportPage() {
       const amount = toNumber(get("invoice_amount"));
       const paid = toNumber(get("amount_paid")) ?? 0;
       const notes = String(get("notes") ?? "").trim();
+      const matchedId = matchCustomer(code, name);
 
       const messages: string[] = [];
       if (!name && !code) messages.push("Missing customer");
@@ -196,15 +216,15 @@ function ImportPage() {
         status = "duplicate";
         messages.push("Invoice number already exists");
       }
-      if (status === "valid" && !code) {
+      if (status === "valid" && !matchedId) {
         status = "warning";
-        messages.push("No customer code — matched or created by name");
+        messages.push("New customer — will be created on import");
       }
       if (number) seen.add(key);
 
-      return { idx, name, code, number, invDate, dueDate, creditDays, amount, paid, notes, status, messages };
+      return { idx, name, code, number, invDate, dueDate, creditDays, amount, paid, notes, status, messages, matchedId };
     });
-  }, [raw, mapping, settings, existingInvoiceNumbers]);
+  }, [raw, mapping, settings, existingInvoiceNumbers, customerIndex]);
 
   const counts = {
     total: preview.length,
@@ -238,17 +258,15 @@ function ImportPage() {
         .single();
       if (batchErr) throw batchErr;
 
-      // Resolve or create customers
-      const byName = new Map((customers ?? []).map((c) => [c.business_name.toLowerCase(), c]));
-      const byCode = new Map((customers ?? []).map((c) => [c.customer_code.toLowerCase(), c]));
+      // Resolve customers: match by customer code first, then business name; create only if unmatched
       const resolved = new Map<string, string>();
 
       for (const row of importable) {
-        const key = (row.code || row.name).toLowerCase();
+        const key = norm(row.code || row.name);
         if (resolved.has(key)) continue;
-        const existing = (row.code && byCode.get(row.code.toLowerCase())) || byName.get(row.name.toLowerCase());
-        if (existing) {
-          resolved.set(key, existing.id);
+        const existingId = row.matchedId ?? matchCustomer(row.code, row.name);
+        if (existingId) {
+          resolved.set(key, existingId);
           continue;
         }
         const code = row.code || `C-${row.name.replace(/[^A-Za-z0-9]/g, "").slice(0, 6).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -266,7 +284,7 @@ function ImportPage() {
       }
 
       const invoiceRows = importable.map((row) => ({
-        customer_id: resolved.get((row.code || row.name).toLowerCase())!,
+        customer_id: resolved.get(norm(row.code || row.name))!,
         invoice_number: row.number,
         invoice_date: row.invDate!,
         due_date: row.dueDate!,

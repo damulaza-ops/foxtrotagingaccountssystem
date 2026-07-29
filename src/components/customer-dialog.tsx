@@ -20,6 +20,7 @@ const empty = {
   location: "",
   credit_days: 30,
   credit_limit: 0,
+  opening_balance: 0,
   status: "active",
   notes: "",
 };
@@ -50,6 +51,7 @@ export function CustomerDialog({
               location: customer.location ?? "",
               credit_days: customer.credit_days,
               credit_limit: Number(customer.credit_limit),
+              opening_balance: Number(customer.opening_balance ?? 0),
               status: customer.status,
               notes: customer.notes ?? "",
             }
@@ -76,6 +78,7 @@ export function CustomerDialog({
         location: form.location.trim() || null,
         credit_days: Number(form.credit_days) || 0,
         credit_limit: Number(form.credit_limit) || 0,
+        opening_balance: Number(form.opening_balance) || 0,
         status: form.status,
         notes: form.notes.trim() || null,
       };
@@ -127,8 +130,8 @@ export function CustomerDialog({
             <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label>Location</Label>
-            <Input value={form.location} onChange={(e) => set("location", e.target.value)} />
+            <Label>Address</Label>
+            <Input value={form.location} onChange={(e) => set("location", e.target.value)} placeholder="Physical address / location" />
           </div>
           <div className="space-y-1.5">
             <Label>Credit period (days)</Label>
@@ -139,11 +142,16 @@ export function CustomerDialog({
             <Input type="number" min={0} value={form.credit_limit} onChange={(e) => set("credit_limit", Number(e.target.value))} />
           </div>
           <div className="space-y-1.5">
+            <Label>Opening balance (KES)</Label>
+            <Input type="number" value={form.opening_balance} onChange={(e) => set("opening_balance", Number(e.target.value))} />
+          </div>
+          <div className="space-y-1.5">
             <Label>Status</Label>
             <Select value={form.status} onValueChange={(v) => set("status", v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
                 <SelectItem value="on_hold">On hold</SelectItem>
                 <SelectItem value="archived">Archived</SelectItem>
               </SelectContent>

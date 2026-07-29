@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/customers/")({
 
 function CustomersPage() {
   const queryClient = useQueryClient();
-  const { isManager } = useAuthz();
+  const { isManager, isAdmin } = useAuthz();
   const { data: customers, isLoading } = useQuery({ queryKey: qk.customers, queryFn: fetchCustomers });
   const { data: invoices = [] } = useQuery({ queryKey: qk.invoices, queryFn: fetchInvoices });
 
@@ -48,6 +48,7 @@ function CustomersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
   const [archiving, setArchiving] = useState<Customer | null>(null);
+  const [deleting, setDeleting] = useState<Customer | null>(null);
 
   const balances = useMemo(() => {
     const map = new Map<string, { balance: number; overdue: number }>();
@@ -92,6 +93,23 @@ function CustomersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (c: Customer) => {
+      const { error } = await supabase.from("customers").delete().eq("id", c.id);
+      if (error) {
+        if (error.code === "23503")
+          throw new Error("This customer has invoices or payments and cannot be deleted. Archive them instead.");
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.customers });
+      toast.success("Customer deleted");
+      setDeleting(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div>
       <PageHeader
@@ -100,7 +118,7 @@ function CustomersPage() {
         actions={
           isManager && (
             <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>
-              <Plus className="mr-1 h-4 w-4" />Add customer
+              <Plus className="mr-1 h-4 w-4" />New customer
             </Button>
           )
         }
@@ -114,6 +132,7 @@ function CustomersPage() {
             <SelectContent>
               <SelectItem value="all">All statuses</SelectItem>
               <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
               <SelectItem value="on_hold">On hold</SelectItem>
               <SelectItem value="archived">Archived</SelectItem>
             </SelectContent>
@@ -130,7 +149,7 @@ function CustomersPage() {
               <EmptyState
                 title="No customers found"
                 description="Add your first customer or import them from Excel."
-                action={isManager ? <Button onClick={() => setDialogOpen(true)}>Add customer</Button> : undefined}
+                action={isManager ? <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>New customer</Button> : undefined}
               />
             </div>
           ) : (
@@ -193,6 +212,11 @@ function CustomersPage() {
                                   </DropdownMenuItem>
                                 </>
                               )}
+                              {isAdmin && (
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleting(c)}>
+                                  Delete
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -222,6 +246,26 @@ function CustomersPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={() => archiving && archiveMutation.mutate(archiving)}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {deleting?.business_name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the customer record. Customers with invoices or payments cannot be deleted — archive them instead.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+              onClick={(e) => { e.preventDefault(); if (deleting) deleteMutation.mutate(deleting); }}
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
