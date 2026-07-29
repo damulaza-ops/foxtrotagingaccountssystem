@@ -130,8 +130,8 @@ export function CustomerDialog({
             <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label>Location</Label>
-            <Input value={form.location} onChange={(e) => set("location", e.target.value)} />
+            <Label>Address</Label>
+            <Input value={form.location} onChange={(e) => set("location", e.target.value)} placeholder="Physical address / location" />
           </div>
           <div className="space-y-1.5">
             <Label>Credit period (days)</Label>
@@ -142,11 +142,16 @@ export function CustomerDialog({
             <Input type="number" min={0} value={form.credit_limit} onChange={(e) => set("credit_limit", Number(e.target.value))} />
           </div>
           <div className="space-y-1.5">
+            <Label>Opening balance (KES)</Label>
+            <Input type="number" value={form.opening_balance} onChange={(e) => set("opening_balance", Number(e.target.value))} />
+          </div>
+          <div className="space-y-1.5">
             <Label>Status</Label>
             <Select value={form.status} onValueChange={(v) => set("status", v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
                 <SelectItem value="on_hold">On hold</SelectItem>
                 <SelectItem value="archived">Archived</SelectItem>
               </SelectContent>
