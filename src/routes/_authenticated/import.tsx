@@ -258,17 +258,15 @@ function ImportPage() {
         .single();
       if (batchErr) throw batchErr;
 
-      // Resolve or create customers
-      const byName = new Map((customers ?? []).map((c) => [c.business_name.toLowerCase(), c]));
-      const byCode = new Map((customers ?? []).map((c) => [c.customer_code.toLowerCase(), c]));
+      // Resolve customers: match by customer code first, then business name; create only if unmatched
       const resolved = new Map<string, string>();
 
       for (const row of importable) {
-        const key = (row.code || row.name).toLowerCase();
+        const key = norm(row.code || row.name);
         if (resolved.has(key)) continue;
-        const existing = (row.code && byCode.get(row.code.toLowerCase())) || byName.get(row.name.toLowerCase());
-        if (existing) {
-          resolved.set(key, existing.id);
+        const existingId = row.matchedId ?? matchCustomer(row.code, row.name);
+        if (existingId) {
+          resolved.set(key, existingId);
           continue;
         }
         const code = row.code || `C-${row.name.replace(/[^A-Za-z0-9]/g, "").slice(0, 6).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -286,7 +284,7 @@ function ImportPage() {
       }
 
       const invoiceRows = importable.map((row) => ({
-        customer_id: resolved.get((row.code || row.name).toLowerCase())!,
+        customer_id: resolved.get(norm(row.code || row.name))!,
         invoice_number: row.number,
         invoice_date: row.invDate!,
         due_date: row.dueDate!,
