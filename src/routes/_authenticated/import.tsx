@@ -168,6 +168,21 @@ function ImportPage() {
     [invoices],
   );
 
+  const customerIndex = useMemo(() => {
+    const byCode = new Map<string, string>();
+    const byName = new Map<string, string>();
+    for (const c of customers ?? []) {
+      byCode.set(norm(c.customer_code), c.id);
+      byName.set(norm(c.business_name), c.id);
+    }
+    return { byCode, byName };
+  }, [customers]);
+
+  const matchCustomer = (code: string, name: string) =>
+    (code ? customerIndex.byCode.get(norm(code)) : undefined) ??
+    (name ? customerIndex.byName.get(norm(name)) : undefined) ??
+    null;
+
   const preview = useMemo(() => {
     const seen = new Set<string>();
     return raw.map((r, idx) => {
@@ -181,6 +196,7 @@ function ImportPage() {
       const amount = toNumber(get("invoice_amount"));
       const paid = toNumber(get("amount_paid")) ?? 0;
       const notes = String(get("notes") ?? "").trim();
+      const matchedId = matchCustomer(code, name);
 
       const messages: string[] = [];
       if (!name && !code) messages.push("Missing customer");
@@ -196,15 +212,15 @@ function ImportPage() {
         status = "duplicate";
         messages.push("Invoice number already exists");
       }
-      if (status === "valid" && !code) {
+      if (status === "valid" && !matchedId) {
         status = "warning";
-        messages.push("No customer code — matched or created by name");
+        messages.push("New customer — will be created on import");
       }
       if (number) seen.add(key);
 
-      return { idx, name, code, number, invDate, dueDate, creditDays, amount, paid, notes, status, messages };
+      return { idx, name, code, number, invDate, dueDate, creditDays, amount, paid, notes, status, messages, matchedId };
     });
-  }, [raw, mapping, settings, existingInvoiceNumbers]);
+  }, [raw, mapping, settings, existingInvoiceNumbers, customerIndex]);
 
   const counts = {
     total: preview.length,
