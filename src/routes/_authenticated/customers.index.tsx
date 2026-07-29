@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/customers/")({
 
 function CustomersPage() {
   const queryClient = useQueryClient();
-  const { isManager } = useAuthz();
+  const { isManager, isAdmin } = useAuthz();
   const { data: customers, isLoading } = useQuery({ queryKey: qk.customers, queryFn: fetchCustomers });
   const { data: invoices = [] } = useQuery({ queryKey: qk.invoices, queryFn: fetchInvoices });
 
@@ -48,6 +48,7 @@ function CustomersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
   const [archiving, setArchiving] = useState<Customer | null>(null);
+  const [deleting, setDeleting] = useState<Customer | null>(null);
 
   const balances = useMemo(() => {
     const map = new Map<string, { balance: number; overdue: number }>();
