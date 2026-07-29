@@ -108,6 +108,7 @@ export type Database = {
           id: string
           location: string | null
           notes: string | null
+          opening_balance: number
           phone: string | null
           status: string
           updated_at: string
@@ -124,6 +125,7 @@ export type Database = {
           id?: string
           location?: string | null
           notes?: string | null
+          opening_balance?: number
           phone?: string | null
           status?: string
           updated_at?: string
@@ -140,6 +142,7 @@ export type Database = {
           id?: string
           location?: string | null
           notes?: string | null
+          opening_balance?: number
           phone?: string | null
           status?: string
           updated_at?: string
