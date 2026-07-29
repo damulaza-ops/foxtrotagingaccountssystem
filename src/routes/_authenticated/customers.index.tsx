@@ -132,6 +132,7 @@ function CustomersPage() {
             <SelectContent>
               <SelectItem value="all">All statuses</SelectItem>
               <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
               <SelectItem value="on_hold">On hold</SelectItem>
               <SelectItem value="archived">Archived</SelectItem>
             </SelectContent>
