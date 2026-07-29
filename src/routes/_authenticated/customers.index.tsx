@@ -93,6 +93,23 @@ function CustomersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (c: Customer) => {
+      const { error } = await supabase.from("customers").delete().eq("id", c.id);
+      if (error) {
+        if (error.code === "23503")
+          throw new Error("This customer has invoices or payments and cannot be deleted. Archive them instead.");
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.customers });
+      toast.success("Customer deleted");
+      setDeleting(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div>
       <PageHeader
