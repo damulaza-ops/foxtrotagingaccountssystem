@@ -118,7 +118,7 @@ function CustomersPage() {
         actions={
           isManager && (
             <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>
-              <Plus className="mr-1 h-4 w-4" />Add customer
+              <Plus className="mr-1 h-4 w-4" />New customer
             </Button>
           )
         }
