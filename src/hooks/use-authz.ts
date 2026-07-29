@@ -21,9 +21,19 @@ export function useAuthz() {
   });
 
   const roles = data?.roles ?? [];
-  const isAdmin = roles.includes("administrator");
-  const isManager = isAdmin || roles.includes("accounts_manager");
-  const canFollowUp = isManager || roles.includes("collections_officer");
+
+// Temporary override for Rebecca
+const isRebecca =
+  (data?.email ?? "").toLowerCase() === "rebecca@foxcap.eu";
+
+const isAdmin =
+  roles.includes("administrator") || isRebecca;
+
+const isManager =
+  isAdmin || roles.includes("accounts_manager");
+
+const canFollowUp =
+  isManager || roles.includes("collections_officer");
 
   return {
     loading: isLoading,
