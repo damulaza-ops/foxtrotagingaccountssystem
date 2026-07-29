@@ -212,6 +212,11 @@ function CustomersPage() {
                                   </DropdownMenuItem>
                                 </>
                               )}
+                              {isAdmin && (
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleting(c)}>
+                                  Delete
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
