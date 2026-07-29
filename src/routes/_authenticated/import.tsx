@@ -91,6 +91,10 @@ function ImportPage() {
   const { data: settings } = useQuery({ queryKey: qk.settings, queryFn: fetchSettings });
 
   const [fileName, setFileName] = useState("");
+  const [fileSize, setFileSize] = useState(0);
+  const [dragActive, setDragActive] = useState(false);
+  const [parsing, setParsing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [sheets, setSheets] = useState<string[]>([]);
   const [sheet, setSheet] = useState("");
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
@@ -111,15 +115,44 @@ function ImportPage() {
     setMapping(guessed);
   }
 
-  async function onFile(file: File) {
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type: "array" });
-    setWorkbook(wb);
-    setFileName(file.name);
-    setSheets(wb.SheetNames);
-    setSheet(wb.SheetNames[0]);
-    loadSheet(wb, wb.SheetNames[0]);
+  function resetFile() {
+    setRaw([]);
+    setHeaders([]);
+    setFileName("");
+    setFileSize(0);
+    setWorkbook(null);
+    setSheets([]);
+    setSheet("");
+    setMapping({} as Record<FieldKey, string>);
+    if (inputRef.current) inputRef.current.value = "";
   }
+
+  async function onFile(file: File) {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!["xlsx", "xls", "csv"].includes(ext ?? "")) {
+      toast.error("Unsupported file type. Upload an .xlsx, .xls or .csv file.");
+      return;
+    }
+    setParsing(true);
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      if (!wb.SheetNames.length) throw new Error("The workbook has no sheets");
+      setWorkbook(wb);
+      setFileName(file.name);
+      setFileSize(file.size);
+      setSheets(wb.SheetNames);
+      setSheet(wb.SheetNames[0]);
+      loadSheet(wb, wb.SheetNames[0]);
+      toast.success(`${file.name} loaded`);
+    } catch (e) {
+      resetFile();
+      toast.error(e instanceof Error ? e.message : "Could not read that file");
+    } finally {
+      setParsing(false);
+    }
+  }
+
 
   const existingInvoiceNumbers = useMemo(
     () => new Set((invoices ?? []).map((i) => i.invoice_number.toLowerCase())),
