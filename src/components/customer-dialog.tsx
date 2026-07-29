@@ -20,6 +20,7 @@ const empty = {
   location: "",
   credit_days: 30,
   credit_limit: 0,
+  opening_balance: 0,
   status: "active",
   notes: "",
 };
