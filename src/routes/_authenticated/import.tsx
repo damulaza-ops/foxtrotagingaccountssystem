@@ -63,6 +63,15 @@ function toISODate(v: unknown): string | null {
   return d.toISOString().slice(0, 10);
 }
 
+function fmtBytes(bytes: number): string {
+  if (!bytes) return "0 KB";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+
+
 function toNumber(v: unknown): number | null {
   if (v == null || v === "") return null;
   const n = Number(String(v).replace(/[^0-9.-]/g, ""));
