@@ -78,6 +78,7 @@ export function CustomerDialog({
         location: form.location.trim() || null,
         credit_days: Number(form.credit_days) || 0,
         credit_limit: Number(form.credit_limit) || 0,
+        opening_balance: Number(form.opening_balance) || 0,
         status: form.status,
         notes: form.notes.trim() || null,
       };
