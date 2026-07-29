@@ -299,14 +299,11 @@ function ImportPage() {
     },
     onSuccess: (n) => {
       toast.success(`${n} invoices imported`);
-      setRaw([]);
-      setHeaders([]);
-      setFileName("");
-      setWorkbook(null);
-      setSheets([]);
+      resetFile();
       queryClient.invalidateQueries({ queryKey: qk.invoices });
       queryClient.invalidateQueries({ queryKey: qk.customers });
     },
+
     onError: (e: Error) => toast.error(e.message),
   });
 
