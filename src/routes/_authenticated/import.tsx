@@ -318,16 +318,63 @@ function ImportPage() {
 
       <Card className="mb-4">
         <CardHeader className="pb-2"><CardTitle className="text-base">1. Upload workbook</CardTitle></CardHeader>
-        <CardContent className="flex flex-wrap items-end gap-3">
-          <div>
-            <Label className="text-xs">Excel or CSV file</Label>
-            <Input
-              type="file"
-              accept=".xlsx,.xls,.csv"
-              disabled={!isManager}
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }}
-            />
-          </div>
+        <CardContent className="space-y-3">
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+            className="sr-only"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }}
+          />
+
+          {!fileName ? (
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label="Upload an Excel or CSV file"
+              onClick={() => inputRef.current?.click()}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inputRef.current?.click(); } }}
+              onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+              onDragLeave={() => setDragActive(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragActive(false);
+                const f = e.dataTransfer.files?.[0];
+                if (f) onFile(f);
+              }}
+              className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8 text-center transition-colors hover:border-primary hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                dragActive ? "border-primary bg-accent/60" : "border-border bg-muted/30"
+              }`}
+            >
+              <UploadCloud className="h-8 w-8 text-muted-foreground" />
+              <p className="text-sm font-medium">
+                {parsing ? "Reading file…" : "Click to choose a file or drag & drop it here"}
+              </p>
+              <p className="text-xs text-muted-foreground">Supported formats: .xlsx, .xls, .csv</p>
+              <Button type="button" variant="outline" size="sm" className="mt-1 pointer-events-none">
+                Choose file
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-muted/30 p-4">
+              <FileSpreadsheet className="h-8 w-8 shrink-0 text-primary" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{fileName}</p>
+                <p className="text-xs text-muted-foreground">
+                  {fmtBytes(fileSize)} · {raw.length} rows{sheets.length > 1 ? ` · ${sheets.length} sheets` : ""}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
+                  Change file
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={resetFile}>
+                  <X className="mr-1 h-4 w-4" /> Remove
+                </Button>
+              </div>
+            </div>
+          )}
+
           {sheets.length > 1 && (
             <div>
               <Label className="text-xs">Sheet</Label>
@@ -335,16 +382,22 @@ function ImportPage() {
                 value={sheet}
                 onValueChange={(v) => { setSheet(v); if (workbook) loadSheet(workbook, v); }}
               >
-                <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-[220px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {sheets.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
           )}
-          {fileName && <p className="text-sm text-muted-foreground">{fileName} · {raw.length} rows</p>}
+
+          {!isManager && (
+            <p className="text-xs text-muted-foreground">
+              You can preview and validate this file, but only an Accounts Manager or Administrator can complete the import.
+            </p>
+          )}
         </CardContent>
       </Card>
+
 
       {headers.length > 0 && (
         <Card className="mb-4">
