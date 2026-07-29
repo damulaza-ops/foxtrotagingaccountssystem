@@ -78,6 +78,10 @@ function toNumber(v: unknown): number | null {
   return isFinite(n) ? n : null;
 }
 
+function norm(v: string) {
+  return v.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
 function autoGuess(header: string): FieldKey | "" {
   const h = header.toLowerCase();
   if (h.includes("code")) return "customer_code";
