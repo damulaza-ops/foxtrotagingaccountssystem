@@ -314,6 +314,7 @@ export type Database = {
           invoice_date: string
           invoice_number: string
           notes: string | null
+          opening_paid: number
           outstanding_balance: number | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           source_row: number | null
@@ -335,6 +336,7 @@ export type Database = {
           invoice_date: string
           invoice_number: string
           notes?: string | null
+          opening_paid?: number
           outstanding_balance?: number | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           source_row?: number | null
@@ -356,6 +358,7 @@ export type Database = {
           invoice_date?: string
           invoice_number?: string
           notes?: string | null
+          opening_paid?: number
           outstanding_balance?: number | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           source_row?: number | null
