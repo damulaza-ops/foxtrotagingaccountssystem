@@ -106,10 +106,6 @@ export function CustomerDialog({
         </DialogHeader>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label>Customer code</Label>
-            <Input value={form.customer_code} onChange={(e) => set("customer_code", e.target.value)} placeholder="Auto if blank" />
-          </div>
-          <div className="space-y-1.5">
             <Label>Business name *</Label>
             <Input value={form.business_name} onChange={(e) => set("business_name", e.target.value)} />
           </div>
@@ -126,10 +122,6 @@ export function CustomerDialog({
             <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label>Email</Label>
-            <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
             <Label>Address</Label>
             <Input value={form.location} onChange={(e) => set("location", e.target.value)} placeholder="Physical address / location" />
           </div>
@@ -138,13 +130,10 @@ export function CustomerDialog({
             <Input type="number" min={0} value={form.credit_days} onChange={(e) => set("credit_days", Number(e.target.value))} />
           </div>
           <div className="space-y-1.5">
-            <Label>Credit limit (KES)</Label>
-            <Input type="number" min={0} value={form.credit_limit} onChange={(e) => set("credit_limit", Number(e.target.value))} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Opening balance (KES)</Label>
+            <Label>Amount owed (KES)</Label>
             <Input type="number" value={form.opening_balance} onChange={(e) => set("opening_balance", Number(e.target.value))} />
           </div>
+
           <div className="space-y-1.5">
             <Label>Status</Label>
             <Select value={form.status} onValueChange={(v) => set("status", v)}>
