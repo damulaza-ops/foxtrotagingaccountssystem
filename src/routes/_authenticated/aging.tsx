@@ -38,6 +38,14 @@ import { exportCSV } from "@/lib/export";
 import { useAuthz } from "@/hooks/use-authz";
 
 export const Route = createFileRoute("/_authenticated/aging")({
+  head: () => ({
+    meta: [
+      { title: "Aging Accounts — Foxtrot Aging Accounts" },
+      { name: "description", content: "Outstanding invoices grouped by aging bucket and urgency, oldest overdue first." },
+      { property: "og:title", content: "Aging Accounts — Foxtrot Aging Accounts" },
+      { property: "og:description", content: "Outstanding invoices grouped by aging bucket and urgency, oldest overdue first." },
+    ],
+  }),
   component: AgingPage,
 });
 
