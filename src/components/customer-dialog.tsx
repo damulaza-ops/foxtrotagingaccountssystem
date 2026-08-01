@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { qk, type Customer } from "@/lib/data";
@@ -145,10 +145,6 @@ export function CustomerDialog({
                 <SelectItem value="archived">Archived</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-1.5 sm:col-span-2">
-            <Label>Notes</Label>
-            <Textarea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} />
           </div>
         </div>
         <DialogFooter>
