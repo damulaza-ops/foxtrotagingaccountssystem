@@ -35,6 +35,14 @@ import { daysOverdue } from "@/lib/aging";
 import { useAuthz } from "@/hooks/use-authz";
 
 export const Route = createFileRoute("/_authenticated/customers/")({
+  head: () => ({
+    meta: [
+      { title: "Customers — Foxtrot Aging Accounts" },
+      { name: "description", content: "Manage customer accounts, credit terms, contacts and outstanding balances." },
+      { property: "og:title", content: "Customers — Foxtrot Aging Accounts" },
+      { property: "og:description", content: "Manage customer accounts, credit terms, contacts and outstanding balances." },
+    ],
+  }),
   component: CustomersPage,
 });
 
