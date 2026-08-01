@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { friendlyError } from "@/lib/errors";
 import * as XLSX from "xlsx";
 import { Upload, FileSpreadsheet, X, UploadCloud } from "lucide-react";
 
@@ -331,7 +332,7 @@ function ImportPage() {
       queryClient.invalidateQueries({ queryKey: qk.customers });
     },
 
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(friendlyError(e)),
   });
 
   const missingRequired = FIELDS.filter((f) => f.required && !mapping[f.key]).map((f) => f.label);
