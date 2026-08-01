@@ -20,6 +20,9 @@ import { exportExcel, printPage } from "@/lib/export";
 import { useAuthz } from "@/hooks/use-authz";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
+  validateSearch: (search: Record<string, unknown>): { print?: boolean } => ({
+    print: search.print === true || search.print === "true" ? true : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Customer Profile — Foxtrot Aging Accounts" },
@@ -42,6 +45,7 @@ const FOLLOW_UP_LABELS: Record<string, string> = {
 
 function CustomerDetail() {
   const { id } = Route.useParams();
+  const { print } = Route.useSearch();
   const { isManager, canFollowUp } = useAuthz();
 
   const { data: customers, isLoading: lc } = useQuery({ queryKey: qk.customers, queryFn: fetchCustomers });
