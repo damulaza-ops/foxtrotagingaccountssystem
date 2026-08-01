@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { friendlyError } from "@/lib/errors";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -90,17 +91,28 @@ export function RecordPaymentDialog({
   const mutation = useMutation({
     mutationFn: async () => {
       if (!customerId) throw new Error("Select a customer");
-      if (payAmount <= 0) throw new Error("Enter a valid payment amount");
+      if (!Number.isFinite(payAmount) || payAmount <= 0) throw new Error("Enter a valid payment amount");
+      if (!paymentDate) throw new Error("Select a payment date");
       const allocations = Object.entries(alloc)
         .map(([invoice_id, v]) => ({ invoice_id, amount: Number(v) || 0 }))
-        .filter((a) => a.amount > 0);
+        .filter((a) => a.amount !== 0);
+      if (allocations.some((a) => a.amount < 0 || !Number.isFinite(a.amount)))
+        throw new Error("Allocation amounts must be greater than zero");
       if (allocations.length === 0) throw new Error("Allocate the payment to at least one invoice");
       if (allocTotal > payAmount + 0.005) throw new Error("Allocations exceed the payment amount");
       for (const a of allocations) {
-        const inv = openInvoices.find((i) => i.id === a.invoice_id);
-        if (inv && a.amount > Number(inv.outstanding_balance ?? 0) + 0.005)
-          throw new Error(`Allocation for ${inv.invoice_number} exceeds its outstanding balance`);
+        const inv = invoices.find((i) => i.id === a.invoice_id);
+        if (!inv) throw new Error("One of the selected invoices could no longer be found — reload and try again");
+        if (inv.customer_id !== customerId)
+          throw new Error(`Invoice ${inv.invoice_number} belongs to a different customer`);
+        if (inv.payment_status === "written_off" || inv.payment_status === "cancelled")
+          throw new Error(`Invoice ${inv.invoice_number} is ${inv.payment_status.replace("_", " ")} and cannot receive payments`);
+        if (a.amount > Number(inv.outstanding_balance ?? 0) + 0.005)
+          throw new Error(
+            `Allocation for ${inv.invoice_number} exceeds its outstanding balance of ${fmtKES(Number(inv.outstanding_balance ?? 0))}`,
+          );
       }
+
       const { error } = await supabase.rpc("record_payment", {
         _customer_id: customerId,
         _payment_date: paymentDate,
@@ -119,7 +131,7 @@ export function RecordPaymentDialog({
       toast.success("Payment recorded");
       onOpenChange(false);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(friendlyError(e)),
   });
 
   return (

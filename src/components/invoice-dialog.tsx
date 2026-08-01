@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { friendlyError } from "@/lib/errors";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -105,8 +106,7 @@ export function InvoiceDialog({
       toast.success(invoice ? "Invoice updated" : "Invoice created");
       onOpenChange(false);
     },
-    onError: (e: Error) =>
-      toast.error(e.message.includes("duplicate") ? "An invoice with this number already exists" : e.message),
+    onError: (e: Error) => toast.error(friendlyError(e)),
   });
 
   return (

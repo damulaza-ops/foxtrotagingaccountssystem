@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { friendlyError } from "@/lib/errors";
 import * as XLSX from "xlsx";
 import { Upload, FileSpreadsheet, X, UploadCloud } from "lucide-react";
 
@@ -260,13 +261,24 @@ function ImportPage() {
 
       // Resolve customers: match by customer code first, then business name; create only if unmatched
       const resolved = new Map<string, string>();
+      const keysOf = (row: { code: string; name: string }) =>
+        [norm(row.code), norm(row.name)].filter((k) => k.length > 0);
+      const lookup = (row: { code: string; name: string }) => {
+        for (const k of keysOf(row)) {
+          const hit = resolved.get(k);
+          if (hit) return hit;
+        }
+        return undefined;
+      };
+      const remember = (row: { code: string; name: string }, id: string) => {
+        for (const k of keysOf(row)) resolved.set(k, id);
+      };
 
       for (const row of importable) {
-        const key = norm(row.code || row.name);
-        if (resolved.has(key)) continue;
+        if (lookup(row)) continue;
         const existingId = row.matchedId ?? matchCustomer(row.code, row.name);
         if (existingId) {
-          resolved.set(key, existingId);
+          remember(row, existingId);
           continue;
         }
         const code = row.code || `C-${row.name.replace(/[^A-Za-z0-9]/g, "").slice(0, 6).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -280,17 +292,18 @@ function ImportPage() {
           .select("*")
           .single();
         if (cErr) throw cErr;
-        resolved.set(key, created.id);
+        remember(row, created.id);
       }
 
       const invoiceRows = importable.map((row) => ({
-        customer_id: resolved.get(norm(row.code || row.name))!,
+        customer_id: lookup(row)!,
         invoice_number: row.number,
         invoice_date: row.invDate!,
         due_date: row.dueDate!,
         credit_days: row.creditDays,
         invoice_amount: row.amount!,
         amount_paid: row.paid,
+        opening_paid: row.paid,
         notes: row.notes || null,
         import_batch_id: batch.id,
         source_sheet: sheet,
@@ -331,7 +344,7 @@ function ImportPage() {
       queryClient.invalidateQueries({ queryKey: qk.customers });
     },
 
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(friendlyError(e)),
   });
 
   const missingRequired = FIELDS.filter((f) => f.required && !mapping[f.key]).map((f) => f.label);

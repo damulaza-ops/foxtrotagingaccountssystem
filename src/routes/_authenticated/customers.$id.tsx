@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Download, Pencil, Phone, Plus, Printer } from "lucide-react";
@@ -20,6 +20,9 @@ import { exportExcel, printPage } from "@/lib/export";
 import { useAuthz } from "@/hooks/use-authz";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
+  validateSearch: (search: Record<string, unknown>): { print?: boolean } => ({
+    print: search.print === true || search.print === "true" ? true : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Customer Profile — Foxtrot Aging Accounts" },
@@ -42,6 +45,7 @@ const FOLLOW_UP_LABELS: Record<string, string> = {
 
 function CustomerDetail() {
   const { id } = Route.useParams();
+  const { print } = Route.useSearch();
   const { isManager, canFollowUp } = useAuthz();
 
   const { data: customers, isLoading: lc } = useQuery({ queryKey: qk.customers, queryFn: fetchCustomers });
@@ -61,6 +65,15 @@ function CustomerDetail() {
   );
   const custPayments = useMemo(() => (payments ?? []).filter((p) => p.customer_id === id), [payments, id]);
   const custFollowUps = useMemo(() => (followUps ?? []).filter((f) => f.customer_id === id), [followUps, id]);
+
+  const printed = useRef(false);
+  const ready = !lc && !li;
+  useEffect(() => {
+    if (print && ready && !printed.current) {
+      printed.current = true;
+      printPage();
+    }
+  }, [print, ready]);
 
   if (lc || li) {
     return (

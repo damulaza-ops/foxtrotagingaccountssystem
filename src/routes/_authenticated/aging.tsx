@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { friendlyError } from "@/lib/errors";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,14 @@ import { exportCSV } from "@/lib/export";
 import { useAuthz } from "@/hooks/use-authz";
 
 export const Route = createFileRoute("/_authenticated/aging")({
+  head: () => ({
+    meta: [
+      { title: "Aging Accounts — Foxtrot Aging Accounts" },
+      { name: "description", content: "Outstanding invoices grouped by aging bucket and urgency, oldest overdue first." },
+      { property: "og:title", content: "Aging Accounts — Foxtrot Aging Accounts" },
+      { property: "og:description", content: "Outstanding invoices grouped by aging bucket and urgency, oldest overdue first." },
+    ],
+  }),
   component: AgingPage,
 });
 
@@ -106,7 +115,7 @@ function AgingPage() {
       queryClient.invalidateQueries({ queryKey: qk.invoices });
       toast.success("Invoice updated");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(friendlyError(e)),
   });
 
   const writeOffMutation = useMutation({
@@ -119,7 +128,7 @@ function AgingPage() {
       toast.success("Balance written off");
       setWriteOff(null);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(friendlyError(e)),
   });
 
   function handleExport() {

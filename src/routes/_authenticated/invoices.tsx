@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { friendlyError } from "@/lib/errors";
 import { MoreHorizontal, Plus, Download, Printer } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,9 @@ import { exportExcel, printPage } from "@/lib/export";
 import { useAuthz } from "@/hooks/use-authz";
 
 export const Route = createFileRoute("/_authenticated/invoices")({
+  validateSearch: (search: Record<string, unknown>): { q?: string } => ({
+    q: typeof search.q === "string" && search.q.length > 0 ? search.q : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Invoices — Foxtrot Aging Accounts" },
@@ -63,8 +67,13 @@ function InvoicesPage() {
   const { isManager } = useAuthz();
   const { data: invoices, isLoading } = useQuery({ queryKey: qk.invoices, queryFn: fetchInvoices });
 
-  const [search, setSearch] = useState("");
+  const { q: initialQuery } = Route.useSearch();
+  const [search, setSearch] = useState(initialQuery ?? "");
   const [status, setStatus] = useState<string>("all");
+
+  useEffect(() => {
+    if (initialQuery) setSearch(initialQuery);
+  }, [initialQuery]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -111,7 +120,7 @@ function InvoicesPage() {
       setWriteOffReason("");
       queryClient.invalidateQueries({ queryKey: qk.invoices });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(friendlyError(e)),
   });
 
   function handleExport() {
