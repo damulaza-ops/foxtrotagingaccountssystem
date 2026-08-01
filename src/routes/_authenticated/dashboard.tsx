@@ -23,6 +23,14 @@ import { fmtKES } from "@/lib/format";
 import { AGING_BUCKETS, agingBucket, daysOverdue, displayStatus, urgency } from "@/lib/aging";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  head: () => ({
+    meta: [
+      { title: "Dashboard — Foxtrot Aging Accounts" },
+      { name: "description", content: "Receivables overview: total outstanding, overdue balances, aging mix and recent collections." },
+      { property: "og:title", content: "Dashboard — Foxtrot Aging Accounts" },
+      { property: "og:description", content: "Receivables overview: total outstanding, overdue balances, aging mix and recent collections." },
+    ],
+  }),
   component: Dashboard,
 });
 
