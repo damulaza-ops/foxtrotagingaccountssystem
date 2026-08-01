@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Download, Pencil, Phone, Plus, Printer } from "lucide-react";
@@ -65,6 +65,15 @@ function CustomerDetail() {
   );
   const custPayments = useMemo(() => (payments ?? []).filter((p) => p.customer_id === id), [payments, id]);
   const custFollowUps = useMemo(() => (followUps ?? []).filter((f) => f.customer_id === id), [followUps, id]);
+
+  const printed = useRef(false);
+  const ready = !lc && !li;
+  useEffect(() => {
+    if (print && ready && !printed.current) {
+      printed.current = true;
+      printPage();
+    }
+  }, [print, ready]);
 
   if (lc || li) {
     return (
