@@ -106,8 +106,7 @@ export function InvoiceDialog({
       toast.success(invoice ? "Invoice updated" : "Invoice created");
       onOpenChange(false);
     },
-    onError: (e: Error) =>
-      toast.error(e.message.includes("duplicate") ? "An invoice with this number already exists" : e.message),
+    onError: (e: Error) => toast.error(friendlyError(e)),
   });
 
   return (
