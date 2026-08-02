@@ -1,0 +1,279 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://biwlfbkjtpekkgovlowk.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "foxtrot-aging-accounts-system",
+      "version": "0.1.0",
+      "title": "Foxtrot Accounts Flow"
+    },
+    "tools": [
+      {
+        "name": "list_customers",
+        "title": "List customers",
+        "description": "Search and list customers with their code, contact details, credit terms and status.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "search": {
+              "description": "Match against business name, branch or customer code.",
+              "type": "string"
+            },
+            "status": {
+              "description": "Filter by status, e.g. Active or Inactive.",
+              "type": "string"
+            },
+            "limit": {
+              "default": 50,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_invoices",
+        "title": "List invoices",
+        "description": "List invoices with amounts, due dates, payment status and outstanding balance. Optionally filter to overdue or unpaid invoices only.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "customer_id": {
+              "description": "Restrict to one customer.",
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "status": {
+              "description": "Filter by payment status.",
+              "type": "string",
+              "enum": [
+                "current",
+                "partially_paid",
+                "overdue",
+                "paid",
+                "written_off",
+                "cancelled",
+                "unverified"
+              ]
+            },
+            "unpaid_only": {
+              "default": false,
+              "description": "Only invoices with an outstanding balance above zero.",
+              "type": "boolean"
+            },
+            "overdue_only": {
+              "default": false,
+              "description": "Only invoices past their due date and not fully paid.",
+              "type": "boolean"
+            },
+            "limit": {
+              "default": 50,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "aging_summary",
+        "title": "Aging summary",
+        "description": "Total outstanding receivables in KES broken down by aging bucket (Current, 1-7, 8-14, 15-30, 31-60, 61-90, 90+ days past due), optionally for a single customer.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "customer_id": {
+              "description": "Restrict the summary to one customer.",
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "customer_statement",
+        "title": "Customer statement",
+        "description": "Full account statement for one customer: profile, all invoices, payments received and follow-up history, with the total outstanding balance in KES.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "customer_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Customer id, e.g. from list_customers."
+            },
+            "invoice_limit": {
+              "default": 100,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500
+            }
+          },
+          "required": [
+            "customer_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_payments",
+        "title": "List payments",
+        "description": "List recent customer payments in KES, including method, reference and whether the payment was reversed.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "customer_id": {
+              "description": "Restrict to one customer.",
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "from_date": {
+              "description": "Earliest payment date (YYYY-MM-DD).",
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "to_date": {
+              "description": "Latest payment date (YYYY-MM-DD).",
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "include_reversed": {
+              "default": false,
+              "type": "boolean"
+            },
+            "limit": {
+              "default": 50,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "log_follow_up",
+        "title": "Log collection follow-up",
+        "description": "Record a collections follow-up against a customer (and optionally a specific invoice): how they were contacted, the outcome and any promise to pay.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "customer_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Customer the follow-up relates to."
+            },
+            "invoice_id": {
+              "description": "Specific invoice, if the follow-up is invoice-level.",
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "contact_method": {
+              "default": "telephone",
+              "type": "string",
+              "enum": [
+                "telephone",
+                "whatsapp",
+                "email",
+                "physical_visit",
+                "other"
+              ]
+            },
+            "status": {
+              "default": "no_response",
+              "type": "string",
+              "enum": [
+                "no_response",
+                "promised_payment",
+                "partial_payment_expected",
+                "disputed_invoice",
+                "escalated",
+                "resolved"
+              ]
+            },
+            "contacted_person": {
+              "type": "string"
+            },
+            "notes": {
+              "description": "What was discussed.",
+              "type": "string"
+            },
+            "promise_to_pay_amount": {
+              "description": "Amount promised, in KES.",
+              "type": "number",
+              "minimum": 0
+            },
+            "promise_to_pay_date": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "follow_up_date": {
+              "description": "Defaults to today.",
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          "required": [
+            "customer_id"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
